@@ -1,448 +1,295 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>文字互动游戏</title>
   <style>
-    :root {
-      --bg: #070913;
-      --panel: rgba(13, 18, 34, 0.78);
-      --panel-border: rgba(146, 170, 255, 0.22);
-      --text: #e8ecff;
-      --muted: #9aa6c9;
-      --accent: #8f7cff;
-      --accent-2: #31d6c4;
-      --danger: #ff5f86;
-      --shadow: rgba(0, 0, 0, 0.45);
-    }
+    :root {{
+      --bg0: #070A12;
+      --bg1: #0B1024;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.10);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --accent: #7C5CFF;
+      --accent2: #23C4FF;
+      --danger: #FF3B7A;
+      --border: rgba(255,255,255,0.14);
+      --shadow: 0 20px 60px rgba(0,0,0,0.55);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }}
 
-    * { box-sizing: border-box; }
-
-    body {
+    html, body {{ height: 100%; }}
+    body {{
       margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
+      font-family: var(--sans);
       color: var(--text);
-      font-family: ui-serif, "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
-      background:
-        radial-gradient(circle at 20% 15%, rgba(143, 124, 255, 0.24), transparent 32%),
-        radial-gradient(circle at 84% 78%, rgba(49, 214, 196, 0.16), transparent 30%),
-        linear-gradient(135deg, #04050c 0%, #090d1b 48%, #111020 100%);
-    }
+      background: radial-gradient(1200px 800px at 30% 10%, rgba(124,92,255,0.25), transparent 60%),
+                  radial-gradient(1000px 700px at 80% 20%, rgba(35,196,255,0.18), transparent 55%),
+                  radial-gradient(900px 700px at 50% 80%, rgba(255,59,122,0.10), transparent 60%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x: hidden;
+    }}
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
-      background-size: 44px 44px;
-      mask-image: radial-gradient(circle at center, black, transparent 78%);
-    }
-
-    .mist {
-      position: fixed;
-      inset: -20vh -20vw;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 35% 50%, rgba(255,255,255,0.06), transparent 18%),
-        radial-gradient(circle at 75% 38%, rgba(143,124,255,0.08), transparent 20%),
-        radial-gradient(circle at 55% 80%, rgba(49,214,196,0.05), transparent 22%);
-      filter: blur(28px);
-      animation: drift 18s ease-in-out infinite alternate;
-    }
-
-    @keyframes drift {
-      from { transform: translate3d(-2%, -1%, 0) scale(1); }
-      to { transform: translate3d(2%, 1%, 0) scale(1.04); }
-    }
-
-    .shell {
-      position: relative;
-      z-index: 1;
-      width: min(920px, calc(100vw - 32px));
-      margin: 0 auto;
-      padding: 48px 0 40px;
-      min-height: 100vh;
+    .wrap {{
+      min-height: 100%;
       display: flex;
       align-items: center;
-    }
+      justify-content: center;
+      padding: 36px 18px;
+    }}
 
-    .game-card {
-      width: 100%;
-      min-height: 580px;
-      border: 1px solid var(--panel-border);
-      border-radius: 28px;
-      background: linear-gradient(180deg, rgba(18, 24, 45, 0.88), rgba(9, 12, 25, 0.82));
-      box-shadow: 0 28px 90px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.08);
-      backdrop-filter: blur(18px);
-      padding: clamp(24px, 5vw, 54px);
+    .card {{
+      width: min(900px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       overflow: hidden;
       position: relative;
-    }
+    }}
 
-    .game-card::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.045) 48%, transparent 56%);
-      transform: translateX(-120%);
-      animation: sheen 7s ease-in-out infinite;
-    }
+    .header {{
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      justify-content: space-between;
+    }}
 
-    @keyframes sheen {
-      0%, 52% { transform: translateX(-120%); }
-      78%, 100% { transform: translateX(120%); }
-    }
+    .title {{
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }}
 
-    .topbar {
+    .hint {{
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }}
+
+    .screen {{
+      padding: 18px 20px 6px 20px;
+      font-family: var(--mono);
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 320px;
+    }}
+
+    .line {{
+      margin: 0 0 10px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }}
+
+    .cursor {{
+      display: inline-block;
+      width: 10px;
+      color: rgba(255,255,255,0.75);
+      animation: blink 1s steps(2, start) infinite;
+    }}
+
+    @keyframes blink {{
+      to {{ visibility: hidden; }}
+    }}
+
+    .choices {{
+      padding: 10px 20px 20px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }}
+
+    button.choice {{
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-family: var(--sans);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }}
+
+    button.choice:hover {{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(124,92,255,0.45);
+    }}
+
+    button.choice:active {{
+      transform: translateY(0px);
+    }}
+
+    .footer {{
+      padding: 12px 20px 18px 20px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 36px;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      font-size: 13px;
-      text-transform: uppercase;
-    }
+      gap: 12px;
+      flex-wrap: wrap;
+    }}
 
-    .scene-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      padding: 8px 12px;
+    .tag {{
+      font-family: var(--mono);
+      border: 1px solid rgba(255,255,255,0.14);
+      padding: 2px 8px;
       border-radius: 999px;
-      background: rgba(143, 124, 255, 0.12);
-      border: 1px solid rgba(143, 124, 255, 0.28);
-      color: #c8c0ff;
-    }
-
-    .scene-badge::before {
-      content: "";
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--accent-2);
-      box-shadow: 0 0 16px var(--accent-2);
-    }
-
-    h1 {
-      margin: 0 0 26px;
-      font-size: clamp(30px, 5vw, 58px);
-      letter-spacing: 0.08em;
-      font-weight: 700;
-      line-height: 1.08;
-      text-shadow: 0 0 34px rgba(143, 124, 255, 0.36);
-    }
-
-    .story {
-      min-height: 250px;
-      padding: 24px 0 12px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .line {
-      margin: 0 0 18px;
-      min-height: 1.55em;
-      font-size: clamp(19px, 2.5vw, 27px);
-      line-height: 1.65;
-      letter-spacing: 0.045em;
-      color: var(--text);
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.35s ease, transform 0.35s ease;
-      white-space: pre-wrap;
-    }
-
-    .line.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .cursor {
-      display: inline-block;
-      width: 0.62em;
-      color: var(--accent-2);
-      animation: blink 0.85s steps(2, start) infinite;
-    }
-
-    @keyframes blink { 50% { opacity: 0; } }
-
-    .choices {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-      margin-top: 30px;
-      opacity: 0;
-      transform: translateY(12px);
-      pointer-events: none;
-      transition: opacity 0.35s ease, transform 0.35s ease;
-    }
-
-    .choices.ready {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    button {
-      appearance: none;
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 16px;
-      color: var(--text);
-      background: linear-gradient(135deg, rgba(143,124,255,0.26), rgba(49,214,196,0.12));
-      padding: 16px 18px;
-      font-size: 17px;
-      line-height: 1.4;
-      letter-spacing: 0.04em;
-      font-family: inherit;
-      cursor: pointer;
-      box-shadow: 0 14px 36px rgba(0,0,0,0.22);
-      transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
-      text-align: left;
-    }
-
-    button:hover {
-      transform: translateY(-3px);
-      border-color: rgba(49,214,196,0.55);
-      background: linear-gradient(135deg, rgba(143,124,255,0.42), rgba(49,214,196,0.22));
-      box-shadow: 0 18px 46px rgba(49,214,196,0.12);
-    }
-
-    button:active { transform: translateY(-1px); }
-
-    .restart {
-      background: linear-gradient(135deg, rgba(255,95,134,0.28), rgba(143,124,255,0.22));
-    }
-
-    .hint {
-      margin-top: 22px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .skip {
-      color: var(--muted);
-      border-color: rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      padding: 9px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      box-shadow: none;
-      text-align: center;
-    }
-
-    .ending h1 { color: #ffd5df; }
-    .ending .scene-badge { color: #ffd5df; background: rgba(255,95,134,0.13); border-color: rgba(255,95,134,0.34); }
-    .ending .scene-badge::before { background: var(--danger); box-shadow: 0 0 16px var(--danger); }
-
-    @media (max-width: 640px) {
-      .shell { width: min(100vw - 20px, 920px); padding: 10px 0; align-items: stretch; }
-      .game-card { min-height: calc(100vh - 20px); border-radius: 22px; }
-      .topbar { align-items: flex-start; flex-direction: column; margin-bottom: 26px; }
-      .story { min-height: 310px; }
-      button { font-size: 16px; }
-    }
+      background: rgba(0,0,0,0.15);
+    }}
   </style>
 </head>
 <body>
-  <div class="mist"></div>
-  <main class="shell">
-    <section id="card" class="game-card" aria-live="polite">
-      <div class="topbar">
-        <span id="sceneBadge" class="scene-badge">QS1</span>
-        <button id="skipBtn" class="skip" type="button">跳过打字</button>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="title">文字互动游戏</div>
+        <div class="hint">打字机模式 · 深色沉浸</div>
       </div>
-      <h1 id="title">异世苏醒</h1>
-      <div id="story" class="story"></div>
+
+      <div id="screen" class="screen"></div>
       <div id="choices" class="choices"></div>
-      <div class="hint">文字会逐行显现。选项出现后，点击按钮即可进入对应场景。</div>
-    </section>
-  </main>
 
-  <script>
-    const script = {
-      startScene: "QS1",
-      scenes: {
-        QS1: {
-          id: "QS1",
-          type: "scene",
-          lines: [
-            "你苏醒了，",
-            "看到了陌生的天花板，",
-            "身体的不熟悉感，",
-            "无一不在告诉你一件事——你穿越了。",
-            "你打算？"
-          ],
-          choices: [
-            { id: "QCC1", text: "喊人", target: "QS2" },
-            { id: "QCC2", text: "观察周围", target: "QS3" }
-          ]
-        },
-        QS2: {
-          id: "QS2",
-          type: "scene",
-          sourceMarker: "QCC2",
-          lines: [
-            "你喊了人",
-            "门被人敲响了",
-            "“我可以进来吗？”",
-            "传来了悠闲的声音"
-          ],
-          choices: [
-            { id: "QCC3", text: "让他进来", target: "END1" },
-            { id: "QCC4", text: "不出声", target: "END1" }
-          ]
-        },
-        QS3: {
-          id: "QS3",
-          type: "scene",
-          lines: [
-            "你看了看周围，有点困，选择继续睡",
-            "返回开头"
-          ],
-          choices: [],
-          implicitReturnToStart: true
-        },
-        END1: {
-          id: "END1",
-          type: "ending",
-          lines: [
-            "周围变得阴冷，你死了",
-            "返回开头"
-          ],
-          returnTo: "QS1"
-        }
-      }
-    };
+      <div class="footer">
+        <div>提示：如果剧本中出现未知跳转，会自动回到 <span class="tag">QS1</span></div>
+        <div class="tag">Source: Feishu · Deploy: GitHub Pages</div>
+      </div>
+    </div>
+  </div>
 
-    const card = document.getElementById("card");
-    const sceneBadge = document.getElementById("sceneBadge");
-    const storyEl = document.getElementById("story");
-    const choicesEl = document.getElementById("choices");
-    const skipBtn = document.getElementById("skipBtn");
-    const titleEl = document.getElementById("title");
+<script>
+  const SCENES = {"QS1": {"id": "QS1", "lines": ["你苏醒了，", "看到了陌生的天花板，", "身体的不熟悉感，", "无一不在告诉你一件事——你穿越了。", "你打算？", "喊人", "观察周围", "QCC2", "你喊了人", "门被人敲响了", "“我可以进来吗？”", "传来了悠闲的声音", "让他进来", "不出声"], "options": [{"text": "toEND1", "to": "QS2"}], "ending": false}, "END1": {"id": "END1", "lines": ["周围变得阴冷，你死了", "返回开头"], "options": [], "ending": true}, "QS3": {"id": "QS3", "lines": ["你看了看周围，有点困，选择继续睡", "返回开头", "QCC5", "这一切太离谱了这不会是鬼吧wok", "我速跑"], "options": [{"text": "toEND2", "to": null}], "ending": false}, "END2": {"id": "END2", "lines": ["你发现世界是假的"], "options": [], "ending": true}};
 
-    let currentSceneId = script.startScene;
-    let typingTimer = null;
-    let skipRequested = false;
-    let activeRun = 0;
+  const screen = document.getElementById('screen');
+  const choices = document.getElementById('choices');
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
+  let typingTimer = null;
+
+  function clearTimers() {{
+    if (typingTimer) {{
+      clearTimeout(typingTimer);
+      typingTimer = null;
+    }}
+  }}
+
+  function resetUI() {{
+    clearTimers();
+    screen.innerHTML = '';
+    choices.innerHTML = '';
+  }}
+
+  function getScene(id) {{
+    return SCENES[id] || SCENES['QS1'];
+  }}
+
+  function addLine(text) {{
+    const p = document.createElement('div');
+    p.className = 'line';
+    p.textContent = text;
+    screen.appendChild(p);
+    screen.scrollTop = screen.scrollHeight;
+    return p;
+  }}
+
+  function typeText(el, text, speed, cb) {{
+    let i = 0;
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    cursor.textContent = '▍';
+    el.textContent = '';
+    el.appendChild(cursor);
+
+    function tick() {{
+      if (i >= text.length) {{
+        el.removeChild(cursor);
+        cb && cb();
+        return;
+      }}
+      const ch = text.charAt(i++);
+      el.insertBefore(document.createTextNode(ch), cursor);
+      screen.scrollTop = screen.scrollHeight;
+      typingTimer = setTimeout(tick, speed);
+    }}
+    tick();
+  }}
+
+  function showChoices(scene) {{
+    choices.innerHTML = '';
+
+    if (scene.ending) {{
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = '重新开始';
+      btn.onclick = () => goto('QS1');
+      choices.appendChild(btn);
+      return;
+    }}
+
+    const opts = scene.options || [];
+    if (!opts.length) {{
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = '继续';
+      btn.onclick = () => goto('QS1');
+      choices.appendChild(btn);
+      return;
+    }}
+
+    opts.forEach((opt, idx) => {{
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = opt.text || `选项 ${idx+1}`;
+      btn.onclick = () => goto(opt.to || 'QS1');
+      choices.appendChild(btn);
+    }});
+  }}
+
+  function playScene(sceneId) {{
+    resetUI();
+    const scene = getScene(sceneId);
+
+    const lines = (scene.lines || []).slice();
+    if (!lines.length) {{
+      lines.push('（空场景）');
+    }}
+
+    let idx = 0;
+    function nextLine() {{
+      if (idx >= lines.length) {{
+        showChoices(scene);
+        if (scene.ending) {{
+          // Auto back after a short pause, but keep restart button.
+          setTimeout(() => goto('QS1'), 1800);
+        }}
+        return;
+      }}
+
+      const el = addLine('');
+      const text = String(lines[idx++]);
+      // Slightly vary speed for a more "breathing" feel.
+      const speed = 18 + Math.floor(Math.random() * 10);
+      typeText(el, text, speed, () => setTimeout(nextLine, 160));
     }
 
-    function clearTyping() {
-      if (typingTimer) {
-        clearTimeout(typingTimer);
-        typingTimer = null;
-      }
-      skipRequested = false;
-      activeRun += 1;
-    }
+    nextLine();
+  }}
 
-    function typeText(element, text, runId) {
-      return new Promise(resolve => {
-        let index = 0;
-        element.classList.add("visible");
+  function goto(sceneId) {{
+    const target = SCENES[sceneId] ? sceneId : 'QS1';
+    playScene(target);
+  }}
 
-        const cursor = document.createElement("span");
-        cursor.className = "cursor";
-        cursor.textContent = "▌";
-
-        function render() {
-          if (runId !== activeRun) return resolve();
-          if (skipRequested) {
-            element.textContent = text;
-            return resolve();
-          }
-          element.textContent = text.slice(0, index);
-          element.appendChild(cursor);
-          index += 1;
-
-          if (index <= text.length) {
-            const char = text[index - 2] || "";
-            const delay = /[，。？！——“”]/.test(char) ? 125 : 42;
-            typingTimer = setTimeout(render, delay);
-          } else {
-            cursor.remove();
-            resolve();
-          }
-        }
-
-        render();
-      });
-    }
-
-    async function showScene(sceneId) {
-      clearTyping();
-      const runId = activeRun;
-      const scene = script.scenes[sceneId];
-      if (!scene) {
-        console.error(`未找到场景：${sceneId}`);
-        return showScene(script.startScene);
-      }
-
-      currentSceneId = sceneId;
-      card.classList.toggle("ending", scene.type === "ending");
-      sceneBadge.textContent = scene.id;
-      titleEl.textContent = scene.type === "ending" ? "结局" : "异世苏醒";
-      storyEl.innerHTML = "";
-      choicesEl.innerHTML = "";
-      choicesEl.classList.remove("ready");
-
-      for (const lineText of scene.lines) {
-        if (runId !== activeRun) return;
-        const line = document.createElement("p");
-        line.className = "line";
-        storyEl.appendChild(line);
-        await typeText(line, lineText, runId);
-        await sleep(skipRequested ? 0 : 220);
-      }
-
-      if (runId !== activeRun) return;
-      renderChoices(scene);
-    }
-
-    function renderChoices(scene) {
-      choicesEl.innerHTML = "";
-      const choices = Array.isArray(scene.choices) ? scene.choices : [];
-
-      if (scene.type === "ending" || scene.implicitReturnToStart) {
-        const btn = document.createElement("button");
-        btn.className = "restart";
-        btn.type = "button";
-        btn.textContent = "回到开头";
-        btn.addEventListener("click", () => showScene(script.startScene));
-        choicesEl.appendChild(btn);
-      } else {
-        for (const choice of choices) {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.textContent = choice.text;
-          btn.setAttribute("aria-label", `${choice.id}：${choice.text}`);
-          btn.addEventListener("click", () => showScene(choice.target));
-          choicesEl.appendChild(btn);
-        }
-      }
-
-      if (choicesEl.children.length > 0) {
-        requestAnimationFrame(() => choicesEl.classList.add("ready"));
-      }
-    }
-
-    skipBtn.addEventListener("click", () => {
-      skipRequested = true;
-    });
-
-    showScene(script.startScene);
-  </script>
+  // Boot
+  goto('QS1');
+</script>
 </body>
 </html>
